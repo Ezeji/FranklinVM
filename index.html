@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <title>Franklin Browser VM</title>
 <style>
-    body { background:black; color:lime; font-family:monospace; text-align:center; }
-    #term {
-        width:90%; height:500px; margin:auto; margin-top:20px;
-        background:#111; border:1px solid #444; padding:10px;
-        overflow-y:auto; white-space:pre-wrap;
-    }
+  body { background:black; color:lime; font-family:monospace; text-align:center; }
+  #term {
+    width:90%; height:500px; margin:auto; margin-top:20px;
+    background:#111; border:1px solid #444; padding:10px;
+    overflow-y:auto; white-space:pre-wrap;
+  }
 </style>
 <script src="https://unpkg.com/v86/build/libv86.js"></script>
 </head>
@@ -25,29 +25,33 @@
 let vm;
 
 function startVM() {
-    if (vm) return;
+  if (vm) return;
 
-    const term = document.getElementById("term");
+  const term = document.getElementById("term");
 
-    vm = new V86({
-        wasm_path: "https://unpkg.com/v86/build/v86.wasm",
-        autostart: true,
+  vm = new V86({
+    wasm_path: "https://unpkg.com/v86/build/v86.wasm",
+    autostart: true,
+    memory_size: 128 * 1024 * 1024,
+    bzimage: {
+      url: "https://copy.sh/v86/buildroot-bzimage.bin",
+      cmdline: "console=ttyS0 root=/dev/sda rw"
+    },
+    hda: {
+      url: "https://copy.sh/v86/buildroot-rootfs.ext2"
+    },
+    serial_container: term,
+    serial_rate: 115200
+  });
 
-        memory_size: 128 * 1024 * 1024,
+  // wait a little then focus
+  setTimeout(() => term.focus(), 100);
 
-        bzimage: { url: "https://copy.sh/v86/buildroot-bzimage.bin" },
-        hda:     { url: "https://copy.sh/v86/buildroot-rootfs.ext2" },
-
-        serial_container: term,
-        serial_rate: 115200,
-    });
-
-    term.focus();
-
-    term.addEventListener("keydown", (ev) => {
-        ev.preventDefault();
-        vm.serial0_send(ev.key);
-    });
+  term.addEventListener("keypress", (ev) => {
+    console.log("Key pressed:", ev.key);
+    ev.preventDefault();
+    vm.serial0_send(ev.key);
+  });
 }
 </script>
 
