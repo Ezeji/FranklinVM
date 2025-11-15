@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Franklin's Browser VM</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<style>
+    body {
+        background: #111;
+        color: #eee;
+        font-family: Consolas, monospace;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+    }
+    #screen {
+        width: 90%;
+        height: 500px;
+        margin: 20px auto;
+        border: 2px solid #444;
+        background: #000;
+    }
+    button {
+        padding: 10px 20px;
+        margin: 10px;
+        background: #333;
+        color: #fff;
+        border: 1px solid #555;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    button:hover {
+        background: #444;
+    }
+</style>
+
+<script src="https://unpkg.com/v86/build/libv86.js"></script>
+</head>
+<body>
+
+<h2>Franklin’s Alpine Linux VM (Powered by v86)</h2>
+
+<div>
+    <button onclick="startVM()">Start VM</button>
+    <button onclick="vm && vm.stop()">Stop VM</button>
+    <button onclick="vm && vm.restart()">Restart VM</button>
+</div>
+
+<canvas id="screen"></canvas>
+
+<script>
+let vm = null;
+
+function startVM() {
+    if (vm) {
+        alert("VM already running!");
+        return;
+    }
+
+    vm = new V86({
+        wasm_path: "https://unpkg.com/v86/build/v86.wasm",
+        memory_size: 256 * 1024 * 1024,
+        vga_memory_size: 8 * 1024 * 1024,
+
+        // Alpine Linux archived images 
+        bzimage: {
+            url: "https://raw.githubusercontent.com/AmesianX/v86-build-rootfs/master/out/bzImage"
+        },
+        hda: {
+            url: "https://raw.githubusercontent.com/AmesianX/v86-build-rootfs/master/out/alpine.ext4"
+        },
+
+        autostart: true,
+        screen_container: document.getElementById("screen"),
+    });
+
+    vm.add_listener("emulator-loaded", () => {
+        console.log("VM Booting…");
+    });
+}
+</script>
+
+</body>
+</html>
