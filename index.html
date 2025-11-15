@@ -1,74 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
+<meta charset="utf-8">
 <title>Franklin's Browser VM</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
 <style>
-    body {
-        background: #000;
-        color: #0f0;
-        font-family: Consolas, monospace;
-        margin: 0;
-        padding: 20px;
-        text-align: center;
-    }
+    body { background: #000; color: #0f0; font-family: monospace; text-align: center; }
     #terminal {
         width: 90%;
         height: 500px;
         margin: 20px auto;
-        background: #111;
         padding: 10px;
+        background: #111;
+        border: 1px solid #444;
         overflow-y: auto;
-        white-space: pre-wrap;
-        text-align: left;
-        border: 1px solid #333;
-    }
-    button {
-        padding: 10px 20px;
-        margin: 10px;
-        background: #222;
-        color: #0f0;
-        border: 1px solid #555;
-        cursor: pointer;
-        font-size: 16px;
-    }
-    button:hover {
-        background: #333;
     }
 </style>
-
 <script src="https://unpkg.com/v86/build/libv86.js"></script>
 </head>
+
 <body>
 
 <h2>Franklin’s Alpine Linux VM (Interactive Terminal)</h2>
+<button onclick="startVM()">Start</button>
 
-<div>
-    <button onclick="startVM()">Start VM</button>
-    <button onclick="vm && vm.stop()">Stop VM</button>
-    <button onclick="vm && vm.restart()">Restart VM</button>
-</div>
-
-<div id="terminal" tabindex="0"></div>
+<pre id="terminal"></pre>
 
 <script>
 let vm = null;
-let terminal = document.getElementById("terminal");
 
 function startVM() {
-    if (vm) {
-        alert("VM already running!");
-        return;
-    }
+    if (vm) return;
 
     vm = new V86({
         wasm_path: "https://unpkg.com/v86/build/v86.wasm",
         memory_size: 256 * 1024 * 1024,
         vga_memory_size: 8 * 1024 * 1024,
 
-        // Alpine Linux image
         bzimage: {
             url: "https://raw.githubusercontent.com/AmesianX/v86-build-rootfs/master/out/bzImage"
         },
@@ -77,15 +44,19 @@ function startVM() {
         },
 
         autostart: true,
-        serial_container: terminal,
+        serial_container: document.getElementById("terminal"),
+        serial_rate: 115200,
     });
 
-    // ENABLE KEYBOARD INPUT
-    terminal.addEventListener("keydown", function (e) {
-        if (!vm) return;
+    // Proper keyboard attachment
+    document.getElementById("terminal").addEventListener("keydown", (e) => {
         e.preventDefault();
-        vm.keyboard_adapter.queue_key(e);
+        vm.serial0_send(e.key);
     });
+
+    // Terminal must be focusable
+    document.getElementById("terminal").tabIndex = 0;
+    document.getElementById("terminal").focus();
 }
 </script>
 
