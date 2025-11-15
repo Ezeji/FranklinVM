@@ -23,8 +23,8 @@ let vm = new V86({
     vga_memory_size: 8 * 1024 * 1024,
 
     // TinyCore kernel + root filesystem
-    bzimage: { url: "/docs/v86/vmlinuz" },
-    initrd: { url: "/docs/v86/core.gz" },
+    bzimage: { url: "https://ezeji.github.io/FranklinVM/docs/v86/vmlinuz" },
+    initrd: { url: "https://ezeji.github.io/FranklinVM/docs/v86/core.gz" },
 
     autostart: true,
     serial_container: term
