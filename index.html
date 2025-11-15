@@ -1,58 +1,45 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Franklin Browser VM</title>
+<meta charset="UTF-8">
+<title>TinyCore Browser VM</title>
 <style>
-  body { background:black; color:lime; font-family:monospace; text-align:center; }
-  #term {
-    width:90%; height:500px; margin:auto; margin-top:20px;
-    background:#111; border:1px solid #444; padding:10px;
-    overflow-y:auto; white-space:pre-wrap;
-  }
+  body { background: black; color: lime; font-family: monospace; margin: 0; padding: 0; }
+  #terminal { width: 100%; height: 600px; }
 </style>
 <script src="https://unpkg.com/v86/build/libv86.js"></script>
 </head>
-
 <body>
 
-<h2>Franklin’s Linux VM (Interactive Terminal)</h2>
-<button onclick="startVM()">Start VM</button>
-
-<pre id="term" tabindex="0"></pre>
+<h2 style="color:white;text-align:center;">TinyCore 15 VM in Browser</h2>
+<div id="terminal"></div>
 
 <script>
-let vm;
+let term = document.getElementById("terminal");
 
-function startVM() {
-  if (vm) return;
-
-  const term = document.getElementById("term");
-
-  vm = new V86({
+let vm = new V86({
     wasm_path: "https://unpkg.com/v86/build/v86.wasm",
-    autostart: true,
     memory_size: 128 * 1024 * 1024,
-    bzimage: {
-      url: "https://copy.sh/v86/buildroot-bzimage.bin",
-      cmdline: "console=ttyS0 root=/dev/sda rw"
-    },
-    hda: {
-      url: "https://copy.sh/v86/buildroot-rootfs.ext2"
-    },
-    serial_container: term,
-    serial_rate: 115200
-  });
+    vga_memory_size: 8 * 1024 * 1024,
 
-  // wait a little then focus
-  setTimeout(() => term.focus(), 100);
+    // TinyCore kernel + root filesystem
+    bzimage: { url: "/docs/v86/vmlinuz" },
+    initrd: { url: "/docs/v86/core.gz" },
 
-  term.addEventListener("keypress", (ev) => {
-    console.log("Key pressed:", ev.key);
-    ev.preventDefault();
-    vm.serial0_send(ev.key);
-  });
-}
+    autostart: true,
+    serial_container: term
+});
+
+// Focus so keyboard works
+term.tabIndex = 0;
+term.focus();
+
+term.addEventListener("keydown", (e) => {
+    e.preventDefault();
+    if (vm && vm.keyboard_adapter) {
+        vm.keyboard_adapter.queue_key(e);
+    }
+});
 </script>
 
 </body>
