@@ -7,31 +7,35 @@
 
 <style>
     body {
-        background: #111;
-        color: #eee;
+        background: #000;
+        color: #0f0;
         font-family: Consolas, monospace;
         margin: 0;
-        padding: 0;
+        padding: 20px;
         text-align: center;
     }
-    #screen {
+    #terminal {
         width: 90%;
         height: 500px;
         margin: 20px auto;
-        border: 2px solid #444;
-        background: #000;
+        background: #111;
+        padding: 10px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        text-align: left;
+        border: 1px solid #333;
     }
     button {
         padding: 10px 20px;
         margin: 10px;
-        background: #333;
-        color: #fff;
+        background: #222;
+        color: #0f0;
         border: 1px solid #555;
         cursor: pointer;
         font-size: 16px;
     }
     button:hover {
-        background: #444;
+        background: #333;
     }
 </style>
 
@@ -39,7 +43,7 @@
 </head>
 <body>
 
-<h2>Franklin’s Alpine Linux VM (Powered by v86)</h2>
+<h2>Franklin’s Alpine Linux VM (Interactive Terminal)</h2>
 
 <div>
     <button onclick="startVM()">Start VM</button>
@@ -47,10 +51,11 @@
     <button onclick="vm && vm.restart()">Restart VM</button>
 </div>
 
-<canvas id="screen"></canvas>
+<div id="terminal" tabindex="0"></div>
 
 <script>
 let vm = null;
+let terminal = document.getElementById("terminal");
 
 function startVM() {
     if (vm) {
@@ -63,7 +68,7 @@ function startVM() {
         memory_size: 256 * 1024 * 1024,
         vga_memory_size: 8 * 1024 * 1024,
 
-        // Alpine Linux archived images 
+        // Alpine Linux image
         bzimage: {
             url: "https://raw.githubusercontent.com/AmesianX/v86-build-rootfs/master/out/bzImage"
         },
@@ -72,11 +77,14 @@ function startVM() {
         },
 
         autostart: true,
-        screen_container: document.getElementById("screen"),
+        serial_container: terminal,
     });
 
-    vm.add_listener("emulator-loaded", () => {
-        console.log("VM Booting…");
+    // ENABLE KEYBOARD INPUT
+    terminal.addEventListener("keydown", function (e) {
+        if (!vm) return;
+        e.preventDefault();
+        vm.keyboard_adapter.queue_key(e);
     });
 }
 </script>
